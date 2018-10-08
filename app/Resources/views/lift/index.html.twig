@@ -2,7 +2,7 @@
 
 {% block body %}
     <div class="row">
-        <div class="col-md-7">
+        <div class="col-md-7 js-rep-log-table">
             <h2>
                 Lift History
                 <a href="#list-stuff-form" class="btn btn-md btn-success pull-right">
@@ -10,7 +10,7 @@
                 </a>
             </h2>
 
-            <table class="table table-striped js-rep-log-table">
+            <table class="table table-striped">
                 <thead>
                 <tr>
                     <th>What</th>
@@ -65,61 +65,13 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-
+    <script src="{{ asset('assets/js/RepLogApp.js') }}"></script>
     <script>
-        var RepLogApp = {
-            initialize: function ($wrapper) {
-                this.$wrapper = $wrapper;
-                this.$wrapper.find('.js-delete-rep-log').on(
-                    'click',
-                    this.handleRepLogDelete
-                );
-                this.$wrapper.find('tbody tr').on('click',
-                    this.handleRowClick
-                );
-
-            },
-            updateTotalWeightLifter: function()
-            {
-                var totalWeight = 0;
-                this.$wrapper.find('tbody tr').each(function () {
-                   totalWeight += $(this).data('weight');
-                });
-
-                this.$wrapper.find('.js-total-weight').html(totalWeight);
-            },
-            handleRepLogDelete: function (e) {
-                e.preventDefault();
-                $(this).addClass('text-danger');
-                $(this).find('.fa')
-                    .removeClass('fa-trash')
-                    .addClass('fa-spinner')
-                    .addClass('fa-spin');
-
-                var deleteUrl = $(this).data('url');
-                var $row = $(this).closest('tr');
-                var $totalWeightContainer = RepLogApp.$wrapper.find('.js-total-weight');
-                var newWeight = $totalWeightContainer.html() - $row.data('weight');
-
-                $.ajax({
-                    url: deleteUrl,
-                    method: 'DELETE',
-                    success: function () {
-                        $row.fadeOut('normal', function () {
-                            $row.remove();
-                            RepLogApp.updateTotalWeightLifter();
-                        });
-                    }
-                });
-            },
-            handleRowClick: function () {
-                console.log('row clicked')
-            }
-        };
+        console.log(window);
 
         $(document).ready(function () {
-           $table = $('.js-rep-log-table');
-           RepLogApp.initialize($table);
+           $wrapper = $('.js-rep-log-table');
+           var repLogApp = new RepLogApp($wrapper);
         });
 
     </script>
