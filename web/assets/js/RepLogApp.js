@@ -5,22 +5,30 @@
         this.$wrapper = $wrapper;
         this.helper = new Helper($wrapper);
 
-        this.$wrapper.find('.js-delete-rep-log').on(
+        this.$wrapper.on(
             'click',
+            '.js-delete-rep-log',
             this.handleRepLogDelete.bind(this)
         );
 
-        this.$wrapper.find('tbody tr').on('click',
+        this.$wrapper.on(
+            'click',
+            'tbody tr',
             this.handleRowClick.bind(this)
         );
 
-        this.$wrapper.find('.js-new-rep-log-form').on(
+        this.$wrapper.on(
             'submit',
+            this._selectors.newRepForm,
             this.handleNewFormSubmit.bind(this)
         );
     };
 
     $.extend(window.RepLogApp.prototype, {
+
+        _selectors: {
+            newRepForm: '.js-new-rep-log-form'
+        },
 
         updateTotalWeightLifter: function () {
             this.$wrapper.find('.js-total-weight').html(
@@ -61,13 +69,46 @@
         handleNewFormSubmit: function (e) {
             e.preventDefault();
             var $form = $(e.currentTarget);
-
-            $.ajax({
-                url: $form.attr('action'),
-                method: 'POST',
-                data: $form.serialize()
+            var formData = {};
+            $.each($form.serializeArray(), function (key, fieldData) {
+               formData[fieldData.name] = fieldData.value;
             });
-            console.log('submitting');
+
+            var self = this;
+            $.ajax({
+                url: $form.data('url'),
+                method: 'POST',
+                data: JSON.stringify(formData),
+                success: function(data) {
+                    //todo
+                    console.log('success');
+                },
+                error: function (jqXHR) {
+                    //todo
+                    var errorData = JSON.parse(jqXHR.responseText);
+                    self._mapErrorDataForForm(errorData.errors);
+                }
+            });
+        },
+        
+        _mapErrorDataForForm: function (errorData) {
+            var $form = this.$wrapper.find(this._selectors.newRepForm);
+            $form.find('.js-field-error').remove();
+            $form.find('.form-group').removeClass('has-error');
+
+            $form.find(':input').each(function () {
+               var fieldName = $(this).attr('name');
+               var $wrapper = $(this).closest('.form-group');
+
+               if(!errorData)
+               {
+                   return;
+               }
+               var $error = $('<span clas="js-field-error help-block"></span>');
+               $error.html(errorData[fieldName]);
+               $wrapper.append($error);
+               $wrapper.addClass('has-error');
+            });
         }
     });
 
